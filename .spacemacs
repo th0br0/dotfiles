@@ -28,9 +28,11 @@ values."
      git
      markdown
      org
-     colors
+     (colors :variables
+               colors-enable-nyan-cat-progress-bar ,(display-graphic-p))
      ;; Languages
      emacs-lisp
+     ess
      scala
      rust
      sql
@@ -273,6 +275,8 @@ in `dotspacemacs/user-config'."
   "Configuration function for user code.
 This function is called at the very end of Spacemacs initialization after
 layers configuration. You are free to put any user code."
+  (setq org-modules
+    (quote (org-bbdb org-bibtex org-docview org-gnus org-info org-irc org-mhe org-rmail org-w3m org-drill org-habit org-git-link)))
   (setq org-agenda-files (list "~/private/org/home.org"
                                "~/private/org/work.org"
                                "~/private/org/uni.org"))
@@ -280,3 +284,19 @@ layers configuration. You are free to put any user code."
 
 ;; Do not write anything past this comment. This is where Emacs will
 ;; auto-generate custom variable definitions.
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(org-agenda-files
+   (quote
+    ("~/private/org/work/side/residentadvisor.org" "~/private/org/work/fokus/dps.org" "~/private/org/home.org" "~/private/org/work.org" "~/private/org/uni.org")))
+ '(paradox-github-token t))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(company-tooltip-common ((t (:inherit company-tooltip :weight bold :underline nil))))
+ '(company-tooltip-common-selection ((t (:inherit company-tooltip-selection :weight bold :underline nil)))))
