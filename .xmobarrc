@@ -1,0 +1,15 @@
+Config { font = "xft:ProFont:size=13:antialias=true"
+      , alignSep = "}{"
+      , template = "%StdinReader% }{ %cpu% | %memory% | %enp0s3% | %wlp3s0% | %enp14s0u1% | <fc=#ee9a00>%date%</fc> | %battery% "
+      , commands = [ Run Network "enp0s3" ["-L","0","-H","32","--normal","green","--high","red"] 10
+                   , Run Network "wlp3s0" ["-L","0","-H","32","--normal","green","--high","red"] 10
+                   , Run Network "enp14s0u1" ["-L","0","-H","32","--normal","green","--high","red"] 10
+                   , Run Cpu ["-L","3","-H","50","--normal","green","--high","red"] 10
+                   , Run Memory ["-t","Mem: <usedratio>%"] 10
+                   , Run Swap [] 10
+                   , Run Com "uname" ["-s","-r"] "" 36000
+                   , Run Date "%a %b %_d %Y %H:%M:%S" "date" 10
+                   , Run StdinReader
+                   , Run Battery ["-L","50","-H","75","--high","green","--normal","yellow", "--low", "red"] 10
+                   ]
+      }
