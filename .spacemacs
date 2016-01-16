@@ -276,7 +276,9 @@ in `dotspacemacs/user-config'."
 This function is called at the very end of Spacemacs initialization after
 layers configuration. You are free to put any user code."
   (setq org-modules
-    (quote (org-bbdb org-bibtex org-docview org-gnus org-info org-irc org-mhe org-rmail org-w3m org-drill org-habit org-git-link)))
+        (quote (org-bbdb org-bibtex org-docview org-gnus org-info
+                         org-irc org-mhe org-rmail org-w3m org-drill org-habit org-git-link
+                         org-capture org-timer)))
   (setq org-agenda-files (list "~/private/org/home.org"
                                "~/private/org/work.org"
                                "~/private/org/uni.org"))
