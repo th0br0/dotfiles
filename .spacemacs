@@ -28,8 +28,7 @@ values."
      git
      markdown
      org
-     (colors :variables
-               colors-enable-nyan-cat-progress-bar ,(display-graphic-p))
+     (colors :variables colors-enable-nyan-cat-progress-bar t)
      ;; Languages
      emacs-lisp
      ess
@@ -37,7 +36,8 @@ values."
      rust
      sql
      java
-     python
+     (python :variables
+             python-enable-yapf-format-on-save t)
      latex
      javascript
      html
@@ -110,13 +110,14 @@ values."
    ;; List of themes, the first of the list is loaded when spacemacs starts.
    ;; Press <SPC> T n to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
-   dotspacemacs-themes '(spacemacs-dark
-                         spacemacs-light
-                         solarized-light
+   dotspacemacs-themes '(;;spacemacs-dark
+                         ;;spacemacs-light
                          solarized-dark
+                         ;;solarized-light
                          leuven
                          monokai
-                         zenburn)
+                         ;;zenburn
+                         )
    ;; If non nil the cursor color matches the state color in GUI Emacs.
    dotspacemacs-colorize-cursor-according-to-state t
    ;; Default font. `powerline-scale' allows to quickly tweak the mode-line
@@ -269,6 +270,9 @@ in `dotspacemacs/user-config'."
   (setq powerline-default-separator 'bar)
   (setq browse-url-browser-function 'browse-url-generic
         browse-url-generic-program "google-chrome")
+
+  (setq-default js2-basic-offset 2
+                js-indent-level 2)
   )
 
 (defun dotspacemacs/user-config ()
