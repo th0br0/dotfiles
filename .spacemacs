@@ -42,8 +42,12 @@ values."
      javascript
      html
      yaml
+     shell
      shell-scripts
      typescript
+     ansible
+     dockerfile
+     vagrant
      ;; (shell :variables
      ;;        shell-default-height 30
      ;;        shell-default-position 'bottom)
@@ -112,10 +116,10 @@ values."
    ;; with 2 themes variants, one dark and one light)
    dotspacemacs-themes '(;;spacemacs-dark
                          ;;spacemacs-light
+                         monokai
                          solarized-dark
                          ;;solarized-light
                          leuven
-                         monokai
                          ;;zenburn
                          )
    ;; If non nil the cursor color matches the state color in GUI Emacs.
@@ -123,7 +127,7 @@ values."
    ;; Default font. `powerline-scale' allows to quickly tweak the mode-line
    ;; size to make separators look not too crappy.
    dotspacemacs-default-font '("Source Code Pro"
-                               :size 26
+                               :size 20
                                :weight normal
                                :width normal
                                :powerline-scale 1.25)
@@ -267,11 +271,14 @@ values."
 It is called immediately after `dotspacemacs/init'.  You are free to put almost
 any user code here.  The exception is org related code, which should be placed
 in `dotspacemacs/user-config'."
-  (setq powerline-default-separator 'bar)
-  (setq browse-url-browser-function 'browse-url-generic
-        browse-url-generic-program "google-chrome")
+  (setq 
+        powerline-default-separator 'bar
+        browse-url-browser-function 'browse-url-generic
+        browse-url-generic-program "google-chrome"
+        eclim-eclipse-dirs "~/Apps/eclipse"
+        eclim-executable "~/Apps/eclipse/eclim")
 
-  (setq-default js2-basic-offset 2
+  (setq-default js2-basic-offset 2 
                 js-indent-level 2)
   )
 
@@ -297,7 +304,7 @@ layers configuration. You are free to put any user code."
  ;; If there is more than one, they won't work right.
  '(org-agenda-files
    (quote
-    ("~/private/org/work/side/residentadvisor.org" "~/private/org/work/fokus/dps.org" "~/private/org/home.org" "~/private/org/work.org" "~/private/org/uni.org")))
+    ("~/private/org/private/partei.org" "~/private/org/work/side/residentadvisor.org" "~/private/org/work/fokus/dps.org" "~/private/org/home.org" "~/private/org/work.org" "~/private/org/uni.org")))
  '(paradox-github-token t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
