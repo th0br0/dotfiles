@@ -18,6 +18,9 @@ values."
    ;; of a list then all discovered layers will be installed.
    dotspacemacs-configuration-layers
    '(
+     go
+     csv
+     octave
      ;; ----------------------------------------------------------------
      ;; Example of useful layers you may want to use right away.
      ;; Uncomment some layer names and press <SPC f e R> (Vim style) or
@@ -25,41 +28,55 @@ values."
      ;; ----------------------------------------------------------------
      auto-completion
      better-defaults
-     git
+     ;; git
      markdown
      org
+     pdf-tools
      (colors :variables colors-enable-nyan-cat-progress-bar t)
      ;; Languages
      emacs-lisp
-     ess
+     ;;ess
      scala
-     rust
+     ;; rust
      sql
-     java
+     ;; java
+     bibtex
      (python :variables
              python-enable-yapf-format-on-save t)
+     c-c++
      latex
+     gtags
+     php
      javascript
      html
      yaml
      shell
      shell-scripts
-     typescript
-     ansible
-     dockerfile
-     vagrant
+     ;; typescript
      ;; (shell :variables
      ;;        shell-default-height 30
      ;;        shell-default-position 'bottom)
      ;; spell-checking
      syntax-checking
-     version-control
+     ;; version-control
+     finance
+     ;; private layers
+     (ess :variables
+          ess-enable-smart-equals nil
+          ess-enable-smartparens t)
+     ;;funk
+     polymode
+     calendar
+     gnus
      )
    ;; List of additional packages that will be installed without being
    ;; wrapped in a layer. If you need some configuration for these
    ;; packages, then consider creating a layer. You can also put the
    ;; configuration in `dotspacemacs/user-config'.
-   dotspacemacs-additional-packages '()
+   dotspacemacs-additional-packages '(
+    editorconfig
+    org-sync
+           )
    ;; A list of packages and/or extensions that will not be install and loaded.
    dotspacemacs-excluded-packages '()
    ;; If non-nil spacemacs will delete any orphan packages, i.e. packages that
@@ -117,9 +134,9 @@ values."
    dotspacemacs-themes '(;;spacemacs-dark
                          ;;spacemacs-light
                          monokai
-                         solarized-dark
-                         ;;solarized-light
+                         solarized-light
                          leuven
+                         solarized-dark
                          ;;zenburn
                          )
    ;; If non nil the cursor color matches the state color in GUI Emacs.
@@ -127,7 +144,7 @@ values."
    ;; Default font. `powerline-scale' allows to quickly tweak the mode-line
    ;; size to make separators look not too crappy.
    dotspacemacs-default-font '("Source Code Pro"
-                               :size 20
+                               :size 26
                                :weight normal
                                :width normal
                                :powerline-scale 1.25)
@@ -271,15 +288,73 @@ values."
 It is called immediately after `dotspacemacs/init'.  You are free to put almost
 any user code here.  The exception is org related code, which should be placed
 in `dotspacemacs/user-config'."
-  (setq 
-        powerline-default-separator 'bar
-        browse-url-browser-function 'browse-url-generic
-        browse-url-generic-program "google-chrome"
-        eclim-eclipse-dirs "~/Apps/eclipse"
-        eclim-executable "~/Apps/eclipse/eclim")
+  (setq
+   powerline-default-separator 'bar
+   browse-url-browser-function 'browse-url-generic
+   browse-url-generic-program "google-chrome"
 
-  (setq-default js2-basic-offset 2 
-                js-indent-level 2)
+   eclim-eclipse-dirs "~/Apps/eclipse"
+   eclim-executable "~/Apps/eclipse/eclim"
+   )
+
+  (setq-default js2-basic-offset 2
+                js-indent-level 2
+                rust-enable-racer t
+                )
+  )
+
+
+(eval-after-load 'org-mime
+  '(defun org-mime-compose (body fmt file &optional to subject headers)
+     (require 'message)
+     (let ((bhook
+            (lambda (body fmt)
+              (let ((hook (intern (concat "org-mime-pre-"
+                                          (symbol-name fmt)
+                                          "-hook"))))
+                (if (> (eval `(length ,hook)) 0)
+                    (with-temp-buffer
+                      (insert body)
+                      (goto-char (point-min))
+                      (eval `(run-hooks ',hook))
+                      (buffer-string))
+                  body))))
+           (fmt (if (symbolp fmt) fmt (intern fmt)))
+           (files (org-element-map (org-element-parse-buffer) 'link
+                    (lambda (link)
+                      (when (string= (org-element-property :type link) "file")
+                        (file-truename (org-element-property :path link)))))))
+       (compose-mail to subject headers nil)
+       (message-goto-body)
+       (cond
+        ((eq fmt 'org)
+         (require 'ox-org)
+         (insert (org-export-string-as
+                  (org-babel-trim (funcall bhook body 'org)) 'org t)))
+        ((eq fmt 'ascii)
+         (require 'ox-ascii)
+         (insert (org-export-string-as
+                  (concat "#+Title:\n" (funcall bhook body 'ascii)) 'ascii t)))
+        ((or (eq fmt 'html) (eq fmt 'html-ascii))
+         (require 'ox-ascii)
+         (require 'ox-org)
+         (let* ((org-link-file-path-type 'absolute)
+                ;; we probably don't want to export a huge style file
+                (org-export-htmlize-output-type 'inline-css)
+                (org-html-with-latex 'dvipng)
+                (html-and-images
+                 (org-mime-replace-images
+                  (org-export-string-as (funcall bhook body 'html) 'html t)))
+                (images (cdr html-and-images))
+                (html (org-mime-apply-html-hook (car html-and-images))))
+           (insert (org-mime-multipart
+                    (org-export-string-as
+                     (org-babel-trim
+                      (funcall bhook body (if (eq fmt 'html) 'org 'ascii)))
+                     (if (eq fmt 'html) 'org 'ascii) t)
+                    html)
+                   (mapconcat 'identity images "\n")))))
+       (mapc #'mml-attach-file files)))
   )
 
 (defun dotspacemacs/user-config ()
@@ -287,12 +362,85 @@ in `dotspacemacs/user-config'."
 This function is called at the very end of Spacemacs initialization after
 layers configuration. You are free to put any user code."
   (setq org-modules
-        (quote (org-bbdb org-bibtex org-docview org-gnus org-info
-                         org-irc org-mhe org-rmail org-w3m org-drill org-habit org-git-link
-                         org-capture org-timer)))
-  (setq org-agenda-files (list "~/private/org/home.org"
-                               "~/private/org/work.org"
-                               "~/private/org/uni.org"))
+        (quote (org-bibtex org-docview org-info org-drill org-habit org-sync org-capture org-timer)
+        ))
+  (setq org-agenda-files (list "~/private/org" "~/private/org/plans"))
+  (setq ispell-current-dictionary "britsh")
+  (setq calendar-week-start-day 1) 
+  (setq org-agenda-start-on-weekday 1)
+  (setq org-latex-packages-alist '(
+                                   ("" "mathtools" t)
+                                   ))
+
+  (setq reftex-default-bibliography '("~/private/bibliography/references.bib"))
+  (setq org-ref-bibliography-notes "~/private/bibliography/notes.org"
+        org-ref-default-bibliography '("~/private/bibliography/references.bib")
+        org-ref-pdf-directory "~/private/bibliography/bibtex-pdfs/")
+
+  (setq org-startup-with-latex-preview t)
+
+  
+  (with-eval-after-load 'org-latex
+    (add-to-list 'org-latex-classess
+                 '(("article-th0"
+                   "\\documentclass[11pt]{article}
+                    \\DeclarePairedDelimiterX\\set[1]\\lbrace\\rbrace{\\def\\given{\\;\\delimsize\\vert\\;}#1}"
+                   ("\\section{%s}" . "\\section*{%s}")
+                   ("\\subsection{%s}" . "\\subsection*{%s}")
+                   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                   ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                   ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
+    )
+
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((dot . t)
+     (gnuplot . t))) 
+
+  ;; require 'openwith)
+  ;; (openwith-mode t)
+  ;; (setq openwith-associations '(("\\.pdf\\'" "evince" (file))))
+
+  (setq bibtex-completion-pdf-open-function
+        (lambda (fpath)
+          (call-process "evince" nil 0 nil fpath)))
+  (setq bibtex-completion-pdf-field "File")
+
+
+  ;;(setq org-latex-default-class "article-th0")
+  (require 'calfw-org)
+  (require 'calfw-ical)
+
+
+  ;; Get email, and store in nnml
+  (setq gnus-secondary-select-methods
+        '(
+          (nnimap "gmail"
+                  (nnimap-address
+                   "imap.gmail.com")
+                  (nnimap-server-port 993)
+                  (nnimap-stream ssl))
+          ))
+
+  ;; Send email via Gmail:
+  (setq message-send-mail-function 'smtpmail-send-it
+        smtpmail-default-smtp-server "smtp.gmail.com")
+
+  ;; Archive outgoing email in Sent folder on imap.gmail.com:
+  (setq gnus-message-archive-method '(nnimap "imap.gmail.com")
+        gnus-message-archive-group "[Gmail]/Sent Mail")
+
+  ;; set return email address based on incoming email address
+  (setq gnus-posting-styles
+        '(((header "to" "andreas.chr.osowski@gmail.com")
+           (address "andreas.chr.osowski@gmail.com"))
+          ((header "to" "andreas@osowski.com")
+           (address "andreas@osowski.com"))))
+
+  ;; store email in ~/gmail directory
+  (setq nnml-directory "~/private/gmail")
+  (setq message-directory "~/private/gmail")
+
   )
 
 ;; Do not write anything past this comment. This is where Emacs will
@@ -302,14 +450,92 @@ layers configuration. You are free to put any user code."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ansi-color-faces-vector
+   [default default default italic underline success warning error])
+ '(ansi-color-names-vector
+   ["black" "#d55e00" "#009e73" "#f8ec59" "#0072b2" "#cc79a7" "#56b4e9" "white"])
+ '(compilation-message-face (quote default))
+ '(cua-global-mark-cursor-color "#2aa198")
+ '(cua-normal-cursor-color "#839496")
+ '(cua-overwrite-cursor-color "#b58900")
+ '(cua-read-only-cursor-color "#859900")
+ '(fci-rule-color "#3E3D31" t)
+ '(highlight-changes-colors (quote ("#FD5FF0" "#AE81FF")))
+ '(highlight-symbol-colors
+   (--map
+    (solarized-color-blend it "#002b36" 0.25)
+    (quote
+     ("#b58900" "#2aa198" "#dc322f" "#6c71c4" "#859900" "#cb4b16" "#268bd2"))))
+ '(highlight-symbol-foreground-color "#93a1a1")
+ '(highlight-tail-colors
+   (quote
+    (("#3E3D31" . 0)
+     ("#67930F" . 20)
+     ("#349B8D" . 30)
+     ("#21889B" . 50)
+     ("#968B26" . 60)
+     ("#A45E0A" . 70)
+     ("#A41F99" . 85)
+     ("#3E3D31" . 100))))
+ '(hl-bg-colors
+   (quote
+    ("#7B6000" "#8B2C02" "#990A1B" "#93115C" "#3F4D91" "#00629D" "#00736F" "#546E00")))
+ '(hl-fg-colors
+   (quote
+    ("#002b36" "#002b36" "#002b36" "#002b36" "#002b36" "#002b36" "#002b36" "#002b36")))
+ '(hl-sexp-background-color "#efebe9")
+ '(magit-diff-use-overlays nil)
+ '(nrepl-message-colors
+   (quote
+    ("#dc322f" "#cb4b16" "#b58900" "#546E00" "#B4C342" "#00629D" "#2aa198" "#d33682" "#6c71c4")))
  '(org-agenda-files
    (quote
-    ("~/private/org/private/partei.org" "~/private/org/work/side/residentadvisor.org" "~/private/org/work/fokus/dps.org" "~/private/org/home.org" "~/private/org/work.org" "~/private/org/uni.org")))
- '(paradox-github-token t))
+    ("~/private/org/uni/ss17/numa2/organisatorisches.org" "~/private/org/uni/ss17/numa2/20170420.org" "/home/th0br0/private/org/home.org" "/home/th0br0/private/org/private.org" "/home/th0br0/private/org/timeplan.org" "/home/th0br0/private/org/uni.org" "/home/th0br0/private/org/work.org" "/home/th0br0/private/org/plans/201704.org")))
+ '(org-agenda-start-on-weekday 1)
+ '(package-selected-packages
+   (quote
+    (phpunit phpcbf php-extras php-auto-yasnippets helm-gtags ggtags drupal-mode php-mode pdf-tools tablist openwith key-chord ivy helm-bibtex parsebib biblio biblio-core org-ref request-deferred calfw org-gcal org-projectile org-present org-pomodoro org-bullets diminish winum unfill go-guru fuzzy go-eldoc company-go go-mode protobuf-mode csv-mode insert-shebang hide-comnt org yapfify uuidgen tide typescript-mode py-isort pug-mode org-download mwim livid-mode skewer-mode simple-httpd live-py-mode link-hint git-link eyebrowse evil-visual-mark-mode evil-unimpaired evil-ediff eshell-z dumb-jump company-shell company-emacs-eclim eclim column-enforce-mode color-identifiers-mode cargo ob-diagrams disaster company-c-headers cmake-mode clang-format org-sync py-yapf scala-mode yaxception powerline alert log4e gntp json-mode json-snatcher json-reformat multiple-cursors parent-mode request haml-mode fringe-helper git-gutter+ pkg-info epl flx iedit highlight ctable dash-functional deferred pos-tip pythonic bind-key async f latex-math-preview latex-pretty-symbols latex-unicode-math-mode anaconda-mode with-editor popup packed tern anzu git-gutter yasnippet magit-popup git-commit hydra spinner auctex smartparens package-build avy web-completion-data gitignore-mode js2-mode ess s ledger-mode flycheck-ledger julia-mode markdown-mode auto-complete company projectile bind-map flycheck helm-core rust-mode web-mode polymode org-plus-contrib neotree ensime helm magit dash evil yaml-mode xterm-color ws-butler window-numbering which-key web-beautify volatile-highlights vi-tilde-fringe use-package undo-tree tss toml-mode toc-org tagedit sql-indent spacemacs-theme spaceline solarized-theme smooth-scrolling smeargle slim-mode shell-pop scss-mode sbt-mode sass-mode restart-emacs rainbow-mode rainbow-identifiers rainbow-delimiters racer quelpa pyvenv pytest pyenv-mode popwin pip-requirements persp-mode pcre2el paradox page-break-lines orgit org-repo-todo open-junk-file noflet multi-term move-text monokai-theme mmm-mode markdown-toc magit-gitflow macrostep lorem-ipsum linum-relative leuven-theme less-css-mode js2-refactor js-doc jade-mode info+ indent-guide ido-vertical-mode hy-mode hungry-delete htmlize hl-todo highlight-parentheses highlight-numbers highlight-indentation help-fns+ helm-themes helm-swoop helm-pydoc helm-projectile helm-mode-manager helm-make helm-gitignore helm-flx helm-descbinds helm-css-scss helm-company helm-c-yasnippet helm-ag goto-chg google-translate golden-ratio gnuplot gitconfig-mode gitattributes-mode git-timemachine git-messenger git-gutter-fringe git-gutter-fringe+ gh-md flycheck-rust flycheck-pos-tip flx-ido fish-mode fill-column-indicator fancy-battery expand-region exec-path-from-shell evil-visualstar evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-jumper evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-args evil-anzu eval-sexp-fu ess-smart-equals ess-R-object-popup ess-R-data-view eshell-prompt-extras esh-help emmet-mode emacs-eclim elisp-slime-nav editorconfig diff-hl define-word cython-mode company-web company-tern company-statistics company-racer company-quickhelp company-auctex company-anaconda coffee-mode clean-aindent-mode buffer-move bracketed-paste auto-yasnippet auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell)))
+ '(paradox-github-token t)
+ '(phpcbf-standard "PSR2")
+ '(pos-tip-background-color "#A6E22E")
+ '(pos-tip-foreground-color "#272822")
+ '(python-shell-interpreter "ipython3" t)
+ '(smartrep-mode-line-active-bg (solarized-color-blend "#859900" "#073642" 0.2))
+ '(term-default-bg-color "#002b36")
+ '(term-default-fg-color "#839496")
+ '(vc-annotate-background nil)
+ '(vc-annotate-color-map
+   (quote
+    ((20 . "#F92672")
+     (40 . "#CF4F1F")
+     (60 . "#C26C0F")
+     (80 . "#E6DB74")
+     (100 . "#AB8C00")
+     (120 . "#A18F00")
+     (140 . "#989200")
+     (160 . "#8E9500")
+     (180 . "#A6E22E")
+     (200 . "#729A1E")
+     (220 . "#609C3C")
+     (240 . "#4E9D5B")
+     (260 . "#3C9F79")
+     (280 . "#A1EFE4")
+     (300 . "#299BA6")
+     (320 . "#2896B5")
+     (340 . "#2790C3")
+     (360 . "#66D9EF"))))
+ '(vc-annotate-very-old-color nil)
+ '(weechat-color-list
+   (unspecified "#272822" "#3E3D31" "#A20C41" "#F92672" "#67930F" "#A6E22E" "#968B26" "#E6DB74" "#21889B" "#66D9EF" "#A41F99" "#FD5FF0" "#349B8D" "#A1EFE4" "#F8F8F2" "#F8F8F0"))
+ '(xterm-color-names
+   ["#073642" "#dc322f" "#859900" "#b58900" "#268bd2" "#d33682" "#2aa198" "#eee8d5"])
+ '(xterm-color-names-bright
+   ["#002b36" "#cb4b16" "#586e75" "#657b83" "#839496" "#6c71c4" "#93a1a1" "#fdf6e3"]))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(default ((((class color) (min-colors 257)) (:foreground "#F8F8F2" :background "#272822")) (((class color) (min-colors 89)) (:foreground "#F5F5F5" :background "#1B1E1C"))))
  '(company-tooltip-common ((t (:inherit company-tooltip :weight bold :underline nil))))
  '(company-tooltip-common-selection ((t (:inherit company-tooltip-selection :weight bold :underline nil)))))

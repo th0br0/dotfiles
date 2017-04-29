@@ -98,7 +98,7 @@ myConfig hs = let c = defaultConfig {
             myPP
             myPP{ ppTitle = const "" }
             hs
-        updatePointer (TowardsCentre 0.2 0.2)
+        updatePointer (0.5, 0.5) (0.2, 0.2)
     , handleEventHook = ewmhDesktopsEventHook <+> fullscreenEventHook <+> focusFollow <+>
                     (\e -> case e of
                         PropertyEvent{ ev_window = w } -> do

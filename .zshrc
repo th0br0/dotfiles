@@ -57,7 +57,7 @@ SAVEHIST=1000000
 GRAILS_HOME=~/Libraries/Web/grails/grails-1.3.7
 AKKA_HOME=/progamming/akka/current
 PLAY_HOME=~/Libraries/Scala/play
-ECLIPSE_HOME=~/Apps/eclipse-scala
+ECLIPSE_HOME=~/Apps/eclipse
 QX_HOME=~/Libraries/Web/qooxdoo/qooxdoo
 ANDROID_HOME=~/Libraries/Android/sdk
 ANDROID_SDK_HOME=$ANDROID_HOME
@@ -99,7 +99,7 @@ export JREBEL_PATH=/home/th0br0/jrebel/jrebel.jar
 export OPENCL_INCLUDE_DIR=$CUDA_SDK_ROOT_DIR/include
 export OPENCL_LIBRARY=$CUDA_SDK_ROOT_DIR/lib64
 export NNTPSERVER="snews://news.mensa.de"
-export RUST_SRC_PATH="/home/th0br0/Fun/rust/rustc-nightly/src/"
+export RUST_SRC_PATH="/home/th0br0/Fun/Rust/rustc-nightly/src"
 PROGUARD_HOME=~/Apps/proguard4.6
 export PROGUARD_HOME
 
@@ -119,9 +119,8 @@ PYSIDE2=~/pkg/pyside-sandbox
 PYTHON3XY=`python3 -V 2>&1 | sed -e 's/Python \(3\.[0-9]*\).*/python\1/'`
 PYTHON2XY=`python -V 2>&1 | sed -e 's/Python \(2\.[0-9]*\).*/python\1/'`
 
-PATH=$PATH:$PLAY_HOME:/opt/netbeans/bin:~/Apps/eclipse-scala:/usr/bin/site_perl:~/Libraries/Adobe/AIR/bin:$ECLIPSE_HOME:$PROGUARD_HOME/bin:$GOHOME/bin:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:/opt/qtcreator-2.2.1/bin:/opt/simfy/bin:$SCALA_HOME/bin:~/.cabal/bin:$GRAILS_HOME/bin:$CUDA_TOOLKIT_ROOT_DIR/bin:/usr/local/heroku/bin:$BEES_HOME:$ANDROID_NDK_ROOT/:$GOPATH/bin/:$GOROOT/bin/:/usr/hs/bin:$ANDROID_HOME/build-tools/17.0.0:$PYSIDE/bin:$QT_SDK_HOME/bin:$MAVEN_HOME/bin:$ANT_HOME/bin:$JAVA_HOME/bin:$PostgreSQL_ROOT/bin:$HOME/Apps/node/bin
+PATH=$HOME/Apps/node/bin:$PATH:$PLAY_HOME:/opt/netbeans/bin:~/Apps/eclipse-scala:/usr/bin/site_perl:~/Libraries/Adobe/AIR/bin:$ECLIPSE_HOME:$PROGUARD_HOME/bin:$GOHOME/bin:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:/opt/qtcreator-2.2.1/bin:/opt/simfy/bin:$SCALA_HOME/bin:~/.cabal/bin:$GRAILS_HOME/bin:$CUDA_TOOLKIT_ROOT_DIR/bin:/usr/local/heroku/bin:$BEES_HOME:$ANDROID_NDK_ROOT/:$GOPATH/bin/:$GOROOT/bin/:/usr/hs/bin:$ANDROID_HOME/build-tools/17.0.0:$PYSIDE/bin:$QT_SDK_HOME/bin:$MAVEN_HOME/bin:$ANT_HOME/bin:$JAVA_HOME/bin:$PostgreSQL_ROOT/bin:$HOME/Apps/node/bin:$HOME/.multirust/toolchains/nightly/cargo/bin:$HOME/Apps/hashicorp
 export PATH=$PATH
-export LD_LIBRARY_PATH=$CUDA_TOOLKIT_ROOT_DIR/lib64:$CULA_LIB_PATH_64:$CULASPARSE_LIB_PATH_64
 
 #:$PYSIDE/lib64:$PYSIDE/lib:$QT_SDK_HOME/lib:$LD_LIBRARY_PATH
 #export PYTHONPATH=$PYTHONPATH:$PYSIDE/lib64/$PYTHON3XY/site-packages:$PYSIDE/lib/$PYTHON3XY/site-packages
@@ -147,3 +146,13 @@ source $HOME/.zlogin
 
 # OPAM configuration
 . /home/th0br0/.opam/opam-init/init.zsh > /dev/null 2> /dev/null || true
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f /home/th0br0/Apps/google-cloud-sdk/path.zsh.inc ]; then
+  source '/home/th0br0/Apps/google-cloud-sdk/path.zsh.inc'
+fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f /home/th0br0/Apps/google-cloud-sdk/completion.zsh.inc ]; then
+  source '/home/th0br0/Apps/google-cloud-sdk/completion.zsh.inc'
+fi
